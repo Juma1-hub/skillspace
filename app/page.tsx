@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 const tasks = [
-  ["📝","Data Entry Basics","General","KSh 120"],
-  ["🔎","Web Research","Research","KSh 180"],
-  ["✍️","Short Article","Writing","KSh 250"],
-  ["📊","Spreadsheet Update","Data","KSh 160"],
-  ["🖼️","Image Tagging","AI & Data","KSh 100"],
+  ["📝","Data Entry Basics","General","$0.92","KSh 120"],
+  ["🔎","Web Research","Research","$1.38","KSh 180"],
+  ["✍️","Short Article","Writing","$1.92","KSh 250"],
+  ["📊","Spreadsheet Update","Data","$1.23","KSh 160"],
+  ["🖼️","Image Tagging","AI & Data","$0.77","KSh 100"],
 ];
 
 export default function Home() {
@@ -37,8 +37,8 @@ export default function Home() {
           <div className="card"><div className="metric-label">Free tasks left</div><div className="metric">5</div><div className="trend">New worker benefit</div></div>
           <div className="card"><div className="metric-label">Access status</div><div className="metric">Free</div><div className="trend">5 free tasks available</div></div>
         </div>
-        <div className="section two">
-          <div className="card"><div className="section-head"><h2>Recommended tasks</h2><Link href="/tasks">View all</Link></div><div className="task-list">{tasks.map((t,i)=><div className="task" key={i}><div className="task-main"><div className="task-icon">{t[0]}</div><div><h3>{t[1]}</h3><p>{t[2]} · Beginner friendly</p></div></div><div className="reward">{t[3]}</div></div>)}</div></div>
+        <div className="notice" style={{marginTop:0}}>Stage 1 demo exchange rate: <strong>1 USD = KSh 130</strong>. The admin will be able to edit the exchange rate in the Stage 2 backend.</div><div className="section two">
+          <div className="card"><div className="section-head"><h2>Recommended tasks</h2><Link href="/tasks">View all</Link></div><div className="task-list">{tasks.map((t,i)=><div className="task" key={i}><div className="task-main"><div className="task-icon">{t[0]}</div><div><h3>{t[1]}</h3><p>{t[2]} · Beginner friendly</p></div></div><div style={{textAlign:"right"}}><div className="reward">{t[3]}</div><div style={{fontSize:11,color:"#91a3bd",marginTop:2}}>{t[4]}</div></div></div>)}</div></div>
           <div className="card"><div className="section-head"><h2>Your free tasks</h2></div><p style={{fontSize:12,color:"#91a3bd"}}>Complete 5 free tasks before the platform access fee applies.</p><div className="progress"><span style={{width:"0%"}}/></div><div className="info-row"><span>Completed</span><strong>0 / 5</strong></div><div className="info-row"><span>After free tasks</span><strong>$2 / KSh 260</strong></div><div style={{marginTop:18}}><Link className="btn secondary" href="/tasks">Start earning</Link></div></div>
         </div>
         <div className="section"><div className="section-head"><h2>Task categories</h2><Link href="/tasks">Browse all</Link></div><div className="cat-grid">
