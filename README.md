@@ -27,3 +27,7 @@ Open http://localhost:3000
 
 ## Currency setup
 Stage 1 displays every task reward in both USD and KSh using a demo rate of 1 USD = KSh 130. In Stage 2, the admin backend will store task rewards and the exchange rate so admins can edit prices and the currency rate.
+
+
+## Currency display update
+All worker-facing monetary amounts now use the text label `USD` rather than the `$` symbol. Available balance, earnings, wallet balance, withdrawal minimum, task rewards, and the access fee are shown in both USD and KSh where applicable.
