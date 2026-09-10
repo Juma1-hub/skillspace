@@ -1,4 +1,6 @@
 import Link from "next/link";
+import SupportContact from "../components/SupportContact";
+import SupportEmail from "../components/SupportEmail";
 
 const tasks = [
   ["📝","Data Entry Basics","General","USD 0.92","KSh 120"],
@@ -25,7 +27,7 @@ export default function Home() {
         <Link href="/profile">👤 <span>My Profile</span></Link>
         <Link href="/login">🚪 <span>Log in</span></Link>
       </nav>
-      <div className="sidebar-bottom"><div className="support"><b>Need help?</b><p>Our support team is ready to help.</p><a href="mailto:skillspace@gmail.com">✉ skillspace@gmail.com</a><a href="https://wa.me/254752372102">◉ WhatsApp 0752372102</a></div></div>
+      <div className="sidebar-bottom"><SupportContact /></div>
     </aside>
     <main className="main">
       <header className="topbar"><div className="crumb">Worker Dashboard</div><div className="user"><span style={{fontSize:12,color:"#91a3bd"}}>Welcome back</span><div className="avatar">SS</div></div></header>
@@ -42,8 +44,8 @@ export default function Home() {
           <div className="card"><div className="section-head"><h2>Your free tasks</h2></div><p style={{fontSize:12,color:"#91a3bd"}}>Complete 5 free tasks before the platform access fee applies.</p><div className="progress"><span style={{width:"0%"}}/></div><div className="info-row"><span>Completed</span><strong>0 / 5</strong></div><div className="info-row"><span>After free tasks</span><strong>USD 2 / KSh 260</strong></div><div style={{marginTop:18}}><Link className="btn secondary" href="/tasks">Start earning</Link></div></div>
         </div>
         <div className="section"><div className="section-head"><h2>Task categories</h2><Link href="/tasks">Browse all</Link></div><div className="cat-grid">
-          {[["📝","Writing","10 testing tasks"],["🔎","Research","10 testing tasks"],["📊","Data Entry","10 testing tasks"],["🖼️","AI & Data","10 testing tasks"],["🎨","Design","10 testing tasks"],["📣","Social Media","10 testing tasks"]].map((c,i)=><Link href="/tasks" className="card cat" key={i}><div className="emoji">{c[0]}</div><h3>{c[1]}</h3><p>Beginner-friendly opportunities to build skills and earn.</p><div className="count">{c[2]}</div></Link>)}</div></div>
-        <div className="footer">© 2026 <b>SkillSpace</b> · Work · Learn · Earn · <a href="mailto:skillspace@gmail.com">skillspace@gmail.com</a></div>
+          {[["📝","Writing","10 available tasks"],["🔎","Research","10 available tasks"],["📊","Data Entry","10 available tasks"],["🖼️","AI & Data","10 available tasks"],["🎨","Design","10 available tasks"],["📣","Social Media","10 available tasks"]].map((c,i)=><Link href="/tasks" className="card cat" key={i}><div className="emoji">{c[0]}</div><h3>{c[1]}</h3><p>Beginner-friendly opportunities to build skills and earn.</p><div className="count">{c[2]}</div></Link>)}</div></div>
+        <div className="footer">© 2026 <b>SkillSpace</b> · Work · Learn · Earn · <SupportEmail /></div>
       </div>
     </main>
   </div>;

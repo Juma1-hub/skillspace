@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import SupportContact from "../../../components/SupportContact";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
@@ -93,7 +94,7 @@ export default function TaskDetails() {
           <Link href="/wallet">👛 <span>Wallet</span></Link>
           <Link href="/support">💬 <span>Support</span></Link>
         </nav>
-        <div className="sidebar-bottom"><div className="support"><b>Need help?</b><p>skillspace@gmail.com</p><a href="https://wa.me/254752372102">WhatsApp 0752372102</a></div></div>
+        <div className="sidebar-bottom"><SupportContact /></div>
       </aside>
 
       <main className="main">

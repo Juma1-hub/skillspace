@@ -18,3 +18,4 @@ body{overflow-x:hidden}a{text-decoration:none;color:inherit}button,input{font:in
 .footer{text-align:center;color:#63758d;font-size:11px;padding:35px 0 15px}.footer b{color:#9eb7d7}
 @media(max-width:1000px){.grid4{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.cat-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.sidebar{width:70px;padding:18px 8px}.brand{font-size:0;text-align:center;padding:8px 0 24px}.brand span{font-size:20px}.nav-title,.nav a span:not(.icon),.support{display:none}.nav a{justify-content:center}.main{margin-left:70px;width:calc(100% - 70px)}.topbar{padding:0 15px}.content{padding:20px 15px}.hero{align-items:flex-start;flex-direction:column}.hero h1{font-size:27px}.grid4,.cat-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+.btn:disabled{opacity:.6;cursor:not-allowed}
