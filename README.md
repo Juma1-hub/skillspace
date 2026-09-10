@@ -1,33 +1,14 @@
-# SkillSpace — Stage 1
+# SkillSpace
 
-A beginner-friendly Work · Learn · Earn platform frontend built with Next.js.
+Stage 2: Supabase-connected SkillSpace frontend.
 
-## Included in Stage 1
-- Worker dashboard
-- Find Tasks page
-- 60 starter/testing tasks: 10 in each of 6 categories
-- Earnings page
-- Wallet and withdrawal UI
-- 5 free-task counter
-- $2 / KSh 260 access-fee messaging
-- Support/contact section
-- Email: skillspace@gmail.com
-- WhatsApp: 0752372102
-- Responsive dark-themed UI
+## Environment variables
 
-## Stage 2
-Connect Supabase authentication, database, task tracking, balances, access control and admin backend.
+Create these in Vercel:
 
-## Run locally
-Install Node.js, then:
-npm install
-npm run dev
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
-Open http://localhost:3000
+Use the Supabase project URL (without `/rest/v1/`) and the public Publishable key. Never use a secret/service-role key in the browser.
 
-## Currency setup
-Stage 1 displays every task reward in both USD and KSh using a demo rate of 1 USD = KSh 130. In Stage 2, the admin backend will store task rewards and the exchange rate so admins can edit prices and the currency rate.
-
-
-## Currency display update
-All worker-facing monetary amounts now use the text label `USD` rather than the `$` symbol. Available balance, earnings, wallet balance, withdrawal minimum, task rewards, and the access fee are shown in both USD and KSh where applicable.
+The app now loads active categories and tasks from Supabase and supports email/password sign-up and login.

@@ -1,8 +1,22 @@
+"use client";
+
 import Link from "next/link";
-const cats=["All","Writing","Research","Data Entry","AI & Data","Design","Social Media"];
-const rate=130;
-const rewards=[150,180,120,100,250,160];
-const titles=["Write a short product description","Research 5 local businesses","Enter data into a spreadsheet","Tag images for an AI dataset","Create a simple social graphic","Classify social media posts"];
-const categories=["Writing","Research","Data Entry","AI & Data","Design","Social Media"];
-const tasks=Array.from({length:60},(_,i)=>{const ksh=rewards[i%6];return {id:i+1,title:titles[i%6],cat:categories[i%6],ksh,usd:(ksh/rate).toFixed(2)}});
-export default function Tasks(){return <div className="shell"><aside className="sidebar"><div className="brand">Skill<span>Space</span></div><div className="nav-title">Workspace</div><nav className="nav"><Link href="/">🏠 <span>Dashboard</span></Link><Link className="active" href="/tasks">📋 <span>Find Tasks</span></Link><Link href="/earnings">💰 <span>Earnings</span></Link><Link href="/wallet">👛 <span>Wallet</span></Link><Link href="/support">💬 <span>Support</span></Link></nav><div className="sidebar-bottom"><div className="support"><b>Need help?</b><p>skillspace@gmail.com</p><a href="https://wa.me/254752372102">WhatsApp 0752372102</a></div></div></aside><main className="main"><header className="topbar"><div className="crumb">Find Tasks</div><div className="avatar">SS</div></header><div className="content"><section className="hero"><div><div className="eyebrow">60 starter tasks</div><h1>Find a task</h1><p>Choose a task that matches your skills and start earning.</p></div></section><div className="card" style={{marginBottom:16}}><div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{cats.map(c=><button className="btn secondary" key={c}>{c}</button>)}</div><p style={{fontSize:11,color:"#71849d",marginTop:12}}>Stage 1 demo exchange rate: 1 USD = KSh {rate}. In Stage 2, the admin will be able to edit the exchange rate.</p></div><div className="task-list">{tasks.map(t=><div className="task" key={t.id}><div className="task-main"><div className="task-icon">📋</div><div><h3>{t.title}</h3><p>{t.cat} · Task #{t.id} · Beginner friendly</p></div></div><div style={{display:"flex",alignItems:"center",gap:14}}><div style={{textAlign:"right"}}><div className="reward">USD {t.usd}</div><div style={{fontSize:11,color:"#91a3bd",marginTop:2}}>KSh {t.ksh}</div></div><button className="btn">View</button></div></div>)}</div></div></main></div>}
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+
+type Task={id:string;title:string;description:string;reward_usd:number;reward_ksh:number;category_id:string;category?:{name:string}};
+
+export default function Tasks(){
+  const [tasks,setTasks]=useState<Task[]>([]); const [category,setCategory]=useState("All"); const [categories,setCategories]=useState<string[]>(["All"]); const [loading,setLoading]=useState(true); const [error,setError]=useState("");
+  useEffect(()=>{(async()=>{
+    const {data:cats,error:ce}=await supabase.from("categories").select("id,name").eq("is_active",true).order("name");
+    if(ce){setError(ce.message);setLoading(false);return}
+    setCategories(["All",...(cats||[]).map(c=>c.name)]);
+    const {data,error:te}=await supabase.from("tasks").select("id,title,description,reward_usd,reward_ksh,category_id,category:categories(name)").eq("is_active",true).order("created_at");
+    if(te) setError(te.message); else setTasks((data||[]) as unknown as Task[]); setLoading(false);
+  })()},[]);
+  const visible=category==="All"?tasks:tasks.filter(t=>t.category?.name===category);
+  return <div className="shell"><aside className="sidebar"><div className="brand">Skill<span>Space</span></div><div className="nav-title">Workspace</div><nav className="nav"><Link href="/">🏠 <span>Dashboard</span></Link><Link className="active" href="/tasks">📋 <span>Find Tasks</span></Link><Link href="/earnings">💰 <span>Earnings</span></Link><Link href="/wallet">👛 <span>Wallet</span></Link><Link href="/support">💬 <span>Support</span></Link></nav><div className="sidebar-bottom"><div className="support"><b>Need help?</b><p>skillspace@gmail.com</p><a href="https://wa.me/254752372102">WhatsApp 0752372102</a></div></div></aside><main className="main"><header className="topbar"><div className="crumb">Find Tasks</div><div className="avatar">SS</div></header><div className="content"><section className="hero"><div><div className="eyebrow">Available work</div><h1>Find a task</h1><p>Choose a task that matches your skills and start earning.</p></div></section><div className="card" style={{marginBottom:16}}><div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{categories.map(c=><button onClick={()=>setCategory(c)} className={c===category?"btn":"btn secondary"} key={c}>{c}</button>)}</div></div>
+    {loading?<div className="card">Loading tasks…</div>:error?<div className="card"><b>Unable to load tasks</b><p style={{color:"#91a3bd",fontSize:12,marginTop:6}}>{error}</p></div>:<div className="task-list">{visible.map(t=><div className="task" key={t.id}><div className="task-main"><div className="task-icon">📋</div><div><h3>{t.title}</h3><p>{t.category?.name} · Beginner friendly</p></div></div><div style={{display:"flex",alignItems:"center",gap:14}}><div style={{textAlign:"right"}}><div className="reward">USD {Number(t.reward_usd).toFixed(2)}</div><div style={{fontSize:11,color:"#91a3bd",marginTop:2}}>KSh {Number(t.reward_ksh).toLocaleString()}</div></div><button className="btn">View</button></div></div>)}</div>}
+  </div></main></div>
+}
