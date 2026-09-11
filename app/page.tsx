@@ -18,6 +18,7 @@ const dashboardCategories = [
 export default function Home() {
   const [submittedCount, setSubmittedCount] = useState(0);
   const [freeTasksUsed, setFreeTasksUsed] = useState(0);
+  const [accessUnlocked, setAccessUnlocked] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -35,19 +36,20 @@ export default function Home() {
           .eq("worker_id", user.id),
         supabase
           .from("profiles")
-          .select("free_tasks_used")
+          .select("free_tasks_used,access_unlocked")
           .eq("id", user.id)
           .single(),
       ]);
 
       setSubmittedCount(count || 0);
       setFreeTasksUsed(Number(profile?.free_tasks_used || 0));
+      setAccessUnlocked(Boolean(profile?.access_unlocked));
       setLoadingStats(false);
     }
     loadWorkerStats();
   }, []);
 
-  const freeTasksLeft = Math.max(0, 5 - freeTasksUsed);
+  const freeTasksLeft = accessUnlocked ? 0 : Math.max(0, 5 - freeTasksUsed);
 
   return <div className="shell">
     <aside className="sidebar">
@@ -75,11 +77,11 @@ export default function Home() {
           <div className="card"><div className="metric-label">Available balance</div><div className="metric">USD 0</div><div style={{fontSize:13,color:"#91a3bd",marginTop:2}}>KSh 0</div><div className="trend">Ready to grow</div></div>
           <div className="card"><div className="metric-label">Tasks completed</div><div className="metric">{loadingStats ? "…" : submittedCount}</div><div className="trend">{submittedCount > 0 ? "Submitted for review" : "Start your first task"}</div></div>
           <div className="card"><div className="metric-label">Free tasks left</div><div className="metric">{loadingStats ? "…" : freeTasksLeft}</div><div className="trend">New worker benefit</div></div>
-          <div className="card"><div className="metric-label">Access status</div><div className="metric">{freeTasksLeft > 0 ? "Free" : "Unlock"}</div><div className="trend">{freeTasksLeft > 0 ? `${freeTasksLeft} free tasks available` : "USD 2 / KSh 260 to continue"}</div></div>
+          <div className="card"><div className="metric-label">Access status</div><div className="metric">{accessUnlocked ? "Unlocked" : freeTasksLeft > 0 ? "Free" : "Payment required"}</div><div className="trend">{accessUnlocked ? "Full task access" : freeTasksLeft > 0 ? `${freeTasksLeft} free tasks available` : "USD 2 / KSh 260 to continue"}</div></div>
         </div>
         <div className="section two">
           <div className="card"><div className="section-head"><h2>Browse task categories</h2><Link href="/tasks">View all</Link></div><div className="task-list">{dashboardCategories.map((c,i)=><div className="task" key={i}><div className="task-main"><div className="task-icon">{c[0]}</div><div><h3>{c[1]}</h3><p>{c[2]} · Beginner friendly</p></div></div><Link className="btn" href={`/tasks?category=${encodeURIComponent(c[1])}`}>View</Link></div>)}</div></div>
-          <div className="card"><div className="section-head"><h2>Your free tasks</h2></div><p style={{fontSize:12,color:"#91a3bd"}}>Complete 5 free tasks before the platform access fee applies.</p><div className="progress"><span style={{width:`${Math.min(100, (freeTasksUsed / 5) * 100)}%`}}/></div><div className="info-row"><span>Completed</span><strong>{freeTasksUsed} / 5</strong></div><div className="info-row"><span>After free tasks</span><strong>USD 2 / KSh 260</strong></div><div style={{marginTop:18}}><Link className="btn secondary" href="/tasks">Start earning</Link></div></div>
+          <div className="card"><div className="section-head"><h2>Your free tasks</h2></div><p style={{fontSize:12,color:"#91a3bd"}}>Complete 5 free tasks before the platform access fee applies.</p><div className="progress"><span style={{width:`${Math.min(100, (freeTasksUsed / 5) * 100)}%`}}/></div><div className="info-row"><span>Completed</span><strong>{freeTasksUsed} / 5</strong></div><div className="info-row"><span>After free tasks</span><strong>USD 2 / KSh 260</strong></div><div style={{marginTop:18}}>{freeTasksLeft > 0 || accessUnlocked ? <Link className="btn secondary" href="/tasks">Start earning</Link> : <Link className="btn" href="/payment">Unlock more tasks</Link>}</div></div>
         </div>
         <div className="section"><div className="section-head"><h2>Task categories</h2><Link href="/tasks">Browse all</Link></div><div className="cat-grid">
           {dashboardCategories.map((c,i)=><Link href={`/tasks?category=${encodeURIComponent(c[1])}`} className="card cat" key={i}><div className="emoji">{c[0]}</div><h3>{c[1]}</h3><p>Beginner-friendly opportunities to build skills and earn.</p><div className="count">{c[2]}</div></Link>)}

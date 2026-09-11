@@ -25,10 +25,19 @@ export default function TaskDetails() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [accessUnlocked, setAccessUnlocked] = useState(false);
+  const [accessLoading, setAccessLoading] = useState(true);
 
   useEffect(() => {
     async function loadTask() {
       if (!params.id) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push("/login"); return; }
+      const { data: profile } = await supabase.from("profiles").select("free_tasks_used,access_unlocked").eq("id", user.id).single();
+      const unlocked = Boolean(profile?.access_unlocked);
+      setAccessUnlocked(unlocked);
+      const freeUsed = Number(profile?.free_tasks_used || 0);
+      if (!unlocked && freeUsed >= 5) { setAccessLoading(false); setLoading(false); return; }
       const { data, error: taskError } = await supabase
         .from("tasks")
         .select("id,title,description,instructions,reward_usd,reward_ksh,category:categories(name)")
@@ -39,6 +48,7 @@ export default function TaskDetails() {
       if (taskError) setError(taskError.message);
       else setTask(data as unknown as Task);
       setLoading(false);
+      setAccessLoading(false);
     }
     loadTask();
   }, [params.id]);
@@ -74,6 +84,10 @@ export default function TaskDetails() {
       setSubmission("");
     }
     setSubmitting(false);
+  }
+
+  if (!loading && !accessLoading && !accessUnlocked) {
+    return <div className="shell"><aside className="sidebar"><div className="brand">Skill<span>Space</span></div><div className="nav-title">Workspace</div><nav className="nav"><Link href="/">🏠 <span>Dashboard</span></Link><Link className="active" href="/tasks">📋 <span>Find Tasks</span></Link><Link href="/earnings">💰 <span>Earnings</span></Link><Link href="/wallet">👛 <span>Wallet</span></Link><Link href="/support">💬 <span>Support</span></Link></nav><div className="sidebar-bottom"><SupportContact /></div></aside><main className="main"><header className="topbar"><div className="crumb">Task Access</div><div className="avatar">SS</div></header><div className="content"><div className="card"><div className="eyebrow">Unlock more work</div><h1 style={{fontSize:30,margin:"7px 0 8px"}}>Your 5 free tasks are complete</h1><p style={{color:"#91a3bd",fontSize:14,lineHeight:1.7}}>Continue accessing available tasks by unlocking your account.</p><div style={{marginTop:20,fontSize:20,fontWeight:800}}>USD 2 <span style={{fontSize:14,color:"#91a3bd",fontWeight:500}}> / KSh 260</span></div><Link className="btn" href="/payment" style={{display:"inline-block",marginTop:18}}>Continue to payment</Link></div></div></main></div>;
   }
 
   if (loading) return <div className="shell"><main className="main"><div className="content"><div className="card">Loading task…</div></div></main></div>;

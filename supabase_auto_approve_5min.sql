@@ -39,8 +39,7 @@ begin
       update public.profiles
       set
         available_balance_usd = coalesce(available_balance_usd, 0) + coalesce(s.reward_usd, 0),
-        available_balance_ksh = coalesce(available_balance_ksh, 0) + coalesce(s.reward_ksh, 0),
-        free_tasks_used = least(5, coalesce(free_tasks_used, 0) + 1)
+        available_balance_ksh = coalesce(available_balance_ksh, 0) + coalesce(s.reward_ksh, 0)
       where id = s.worker_id;
 
       insert into public.wallet_transactions
@@ -54,6 +53,57 @@ $$;
 
 revoke all on function public.approve_due_task_submissions() from public;
 grant execute on function public.approve_due_task_submissions() to postgres;
+
+
+-- Track free-task usage when a worker submits a task, so the fifth submission
+-- immediately consumes the free allowance and the next task prompts for payment.
+alter table public.profiles add column if not exists access_unlocked boolean not null default false;
+
+create or replace function public.reserve_free_task_slot()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  used_count integer;
+  unlocked boolean;
+begin
+  select coalesce(free_tasks_used,0), coalesce(access_unlocked,false)
+    into used_count, unlocked
+  from public.profiles
+  where id = new.worker_id
+  for update;
+
+  if not unlocked and used_count >= 5 then
+    raise exception 'Your 5 free tasks are complete. Please unlock more tasks to continue.';
+  end if;
+
+  if not unlocked then
+    update public.profiles
+    set free_tasks_used = least(5, used_count + 1)
+    where id = new.worker_id;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists reserve_free_task_slot on public.task_submissions;
+create trigger reserve_free_task_slot
+before insert on public.task_submissions
+for each row execute function public.reserve_free_task_slot();
+
+-- Bring existing worker records in line with already-submitted tasks.
+update public.profiles p
+set free_tasks_used = least(5, x.submitted_count)
+from (
+  select worker_id, count(*)::integer as submitted_count
+  from public.task_submissions
+  group by worker_id
+) x
+where p.id = x.worker_id
+  and coalesce(p.access_unlocked,false) = false;
 
 -- Replace an existing job with the same name if this script is run again.
 do $$

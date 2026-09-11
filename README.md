@@ -30,3 +30,6 @@ Administrators can open `/admin/tasks` to edit task titles, descriptions, instru
 ## Automatic task approval
 
 Worker submissions are created with `pending` status. A Supabase pg_cron job checks every minute and automatically approves submissions that are at least 5 minutes old. When approved, the worker balance and free-task count are updated and an earning transaction is recorded. Run `supabase_auto_approve_5min.sql` once in the Supabase SQL Editor.
+
+
+Free-task access: the first 5 submissions consume the free allowance immediately. After the fifth submission, further task access is blocked until the USD 2 / KSh 260 access payment is completed. Auto-approval credits submitted rewards after 5 minutes.
