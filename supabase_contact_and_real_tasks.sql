@@ -70,3 +70,13 @@ set title = r.title, description = r.description, instructions = r.instructions
 from numbered n
 join replacements r on r.category_name = n.category_name and r.task_no = n.task_no
 where t.id = n.id;
+
+
+-- Allow administrators to edit task content, rewards, category and availability.
+drop policy if exists "Admins can update tasks" on public.tasks;
+create policy "Admins can update tasks"
+on public.tasks
+for update
+to authenticated
+using (public.is_admin())
+with check (public.is_admin());

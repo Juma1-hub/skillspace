@@ -21,3 +21,7 @@ Run `supabase_contact_and_real_tasks.sql` in the Supabase SQL Editor. It sets th
 After an authenticated user has `role = 'admin'` in `profiles`, open `/admin/settings` to change the support email and WhatsApp number. Worker-facing support areas read these values from the `settings` table.
 
 Never put a Supabase service-role or secret key in this project, GitHub, or Vercel client-side environment variables.
+
+## Admin task management
+
+Administrators can open `/admin/tasks` to edit task titles, descriptions, instructions, rewards, categories, and active/inactive status. Worker-facing task content comes from Supabase.
