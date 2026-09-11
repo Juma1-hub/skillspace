@@ -9,6 +9,10 @@ type Task={id:string;title:string;description:string;reward_usd:number;reward_ks
 
 export default function Tasks(){
   const [tasks,setTasks]=useState<Task[]>([]); const [category,setCategory]=useState("All"); const [categories,setCategories]=useState<string[]>(["All"]); const [loading,setLoading]=useState(true); const [error,setError]=useState("");
+  useEffect(()=>{
+    const requestedCategory = new URLSearchParams(window.location.search).get("category");
+    if(requestedCategory) setCategory(requestedCategory);
+  },[]);
   useEffect(()=>{(async()=>{
     const {data:cats,error:ce}=await supabase.from("categories").select("id,name").eq("is_active",true).order("name");
     if(ce){setError(ce.message);setLoading(false);return}

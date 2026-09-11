@@ -2,12 +2,13 @@ import Link from "next/link";
 import SupportContact from "../components/SupportContact";
 import SupportEmail from "../components/SupportEmail";
 
-const tasks = [
-  ["📝","Data Entry Basics","General","USD 0.92","KSh 120"],
-  ["🔎","Web Research","Research","USD 1.38","KSh 180"],
-  ["✍️","Short Article","Writing","USD 1.92","KSh 250"],
-  ["📊","Spreadsheet Update","Data","USD 1.23","KSh 160"],
-  ["🖼️","Image Tagging","AI & Data","USD 0.77","KSh 100"],
+const dashboardCategories = [
+  ["📝", "Writing", "10 available tasks"],
+  ["🔎", "Research", "10 available tasks"],
+  ["📊", "Data Entry", "10 available tasks"],
+  ["🤖", "AI & Data", "10 available tasks"],
+  ["🎨", "Design", "10 available tasks"],
+  ["📣", "Social Media", "10 available tasks"],
 ];
 
 export default function Home() {
@@ -40,11 +41,11 @@ export default function Home() {
           <div className="card"><div className="metric-label">Access status</div><div className="metric">Free</div><div className="trend">5 free tasks available</div></div>
         </div>
         <div className="section two">
-          <div className="card"><div className="section-head"><h2>Recommended tasks</h2><Link href="/tasks">View all</Link></div><div className="task-list">{tasks.map((t,i)=><div className="task" key={i}><div className="task-main"><div className="task-icon">{t[0]}</div><div><h3>{t[1]}</h3><p>{t[2]} · Beginner friendly</p></div></div><div style={{textAlign:"right"}}><div className="reward">{t[3]}</div><div style={{fontSize:11,color:"#91a3bd",marginTop:2}}>{t[4]}</div></div></div>)}</div></div>
+          <div className="card"><div className="section-head"><h2>Browse task categories</h2><Link href="/tasks">View all</Link></div><div className="task-list">{dashboardCategories.map((c,i)=><div className="task" key={i}><div className="task-main"><div className="task-icon">{c[0]}</div><div><h3>{c[1]}</h3><p>{c[2]} · Beginner friendly</p></div></div><Link className="btn" href={`/tasks?category=${encodeURIComponent(c[1])}`}>View</Link></div>)}</div></div>
           <div className="card"><div className="section-head"><h2>Your free tasks</h2></div><p style={{fontSize:12,color:"#91a3bd"}}>Complete 5 free tasks before the platform access fee applies.</p><div className="progress"><span style={{width:"0%"}}/></div><div className="info-row"><span>Completed</span><strong>0 / 5</strong></div><div className="info-row"><span>After free tasks</span><strong>USD 2 / KSh 260</strong></div><div style={{marginTop:18}}><Link className="btn secondary" href="/tasks">Start earning</Link></div></div>
         </div>
         <div className="section"><div className="section-head"><h2>Task categories</h2><Link href="/tasks">Browse all</Link></div><div className="cat-grid">
-          {[["📝","Writing","10 available tasks"],["🔎","Research","10 available tasks"],["📊","Data Entry","10 available tasks"],["🖼️","AI & Data","10 available tasks"],["🎨","Design","10 available tasks"],["📣","Social Media","10 available tasks"]].map((c,i)=><Link href="/tasks" className="card cat" key={i}><div className="emoji">{c[0]}</div><h3>{c[1]}</h3><p>Beginner-friendly opportunities to build skills and earn.</p><div className="count">{c[2]}</div></Link>)}</div></div>
+          {dashboardCategories.map((c,i)=><Link href={`/tasks?category=${encodeURIComponent(c[1])}`} className="card cat" key={i}><div className="emoji">{c[0]}</div><h3>{c[1]}</h3><p>Beginner-friendly opportunities to build skills and earn.</p><div className="count">{c[2]}</div></Link>)}</div></div>
         <div className="footer">© 2026 <b>SkillSpace</b> · Work · Learn · Earn · <SupportEmail /></div>
       </div>
     </main>
