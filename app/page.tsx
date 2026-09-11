@@ -13,6 +13,7 @@ const dashboardCategories = [
   ["🤖", "AI & Data", "10 available tasks"],
   ["🎨", "Design", "10 available tasks"],
   ["📣", "Social Media", "10 available tasks"],
+  ["🎙️", "Transcription", "10 available tasks"],
 ];
 
 export default function Home() {
@@ -22,14 +23,17 @@ export default function Home() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [balanceUsd, setBalanceUsd] = useState(0);
   const [balanceKsh, setBalanceKsh] = useState(0);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     async function loadWorkerStats() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        setLoggedIn(false);
         setLoadingStats(false);
         return;
       }
+      setLoggedIn(true);
 
       const [{ count }, { data: profile }] = await Promise.all([
         supabase
@@ -72,7 +76,7 @@ export default function Home() {
       <div className="nav-title">Account</div>
       <nav className="nav">
         <Link href="/profile">👤 <span>My Profile</span></Link>
-        <Link href="/login">🚪 <span>Log in</span></Link>
+        {loggedIn ? <button className="nav-link-button" onClick={async()=>{await supabase.auth.signOut();window.location.href="/login";}}>🚪 <span>Log out</span></button> : <Link href="/login">🚪 <span>Log in</span></Link>}
       </nav>
       <div className="sidebar-bottom"><SupportContact /></div>
     </aside>

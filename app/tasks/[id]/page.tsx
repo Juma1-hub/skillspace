@@ -28,16 +28,19 @@ export default function TaskDetails() {
   const [accessUnlocked, setAccessUnlocked] = useState(false);
   const [freeTasksUsed, setFreeTasksUsed] = useState(0);
   const [accessLoading, setAccessLoading] = useState(true);
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 
   useEffect(() => {
     async function loadTask() {
       if (!params.id) return;
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login"); return; }
-      const [{ data: profile }, { count: submissionCount }] = await Promise.all([
+      const [{ data: profile }, { count: submissionCount }, { data: existingSubmission }] = await Promise.all([
         supabase.from("profiles").select("access_unlocked").eq("id", user.id).single(),
         supabase.from("task_submissions").select("id", { count: "exact", head: true }).eq("worker_id", user.id),
+        supabase.from("task_submissions").select("id,status").eq("worker_id", user.id).eq("task_id", params.id).maybeSingle(),
       ]);
+      setAlreadySubmitted(Boolean(existingSubmission));
       const unlocked = Boolean(profile?.access_unlocked);
       const freeUsed = Math.min(5, Number(submissionCount || 0));
       setAccessUnlocked(unlocked);
@@ -67,6 +70,10 @@ export default function TaskDetails() {
       return;
     }
 
+    if (alreadySubmitted) {
+      setError("You have already submitted this task. Each task can only be submitted once.");
+      return;
+    }
     setSubmitting(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -83,10 +90,13 @@ export default function TaskDetails() {
       reward_ksh: task?.reward_ksh,
     });
 
-    if (submitError) setError(submitError.message);
-    else {
+    if (submitError) {
+      if (submitError.code === "23505") setAlreadySubmitted(true);
+      setError(submitError.code === "23505" ? "You have already submitted this task. Each task can only be submitted once." : submitError.message);
+    } else {
       setMessage("Your task has been submitted successfully. It will be approved automatically after 5 minutes.");
       setSubmission("");
+      setAlreadySubmitted(true);
     }
     setSubmitting(false);
   }
@@ -134,7 +144,7 @@ export default function TaskDetails() {
               <h2 style={{fontSize:17,marginBottom:8}}>Instructions</h2>
               <div className="notice" style={{whiteSpace:"pre-wrap"}}>{task.instructions || "Complete the task carefully and submit your finished work below."}</div>
 
-              <form onSubmit={handleSubmit}>
+              {alreadySubmitted ? <div className="notice" style={{marginTop:18,color:"#f4c56b"}}>You have already submitted this task. You cannot submit the same task again.</div> : <form onSubmit={handleSubmit}>
                 <div className="field">
                   <label htmlFor="submission">Your completed work</label>
                   <textarea id="submission" value={submission} onChange={e=>setSubmission(e.target.value)} placeholder="Enter your completed work or response here…" />
@@ -142,7 +152,7 @@ export default function TaskDetails() {
                 {error && <p style={{color:"#ff8797",fontSize:12,marginTop:10}}>{error}</p>}
                 {message && <p style={{color:"#62e39e",fontSize:12,marginTop:10}}>{message}</p>}
                 <button className="btn" type="submit" disabled={submitting} style={{marginTop:14,opacity:submitting?.65:1}}>{submitting ? "Submitting…" : "Submit Task"}</button>
-              </form>
+              </form>}
             </section>
           </div>
         </div>

@@ -23,22 +23,33 @@ export default function Earnings(){
       const {data:{user},error:userError}=await supabase.auth.getUser();
       if(userError) throw userError;
       if(!user) throw new Error("Please log in first.");
-      const {data:tx,error:txError}=await supabase.from("wallet_transactions").select("id,amount_usd,amount_ksh,type,created_at").eq("worker_id",user.id).eq("type","earning").order("created_at",{ascending:false});
+
+      const {data:tx,error:txError}=await supabase
+        .from("wallet_transactions")
+        .select("id,amount_usd,amount_ksh,type,created_at")
+        .eq("worker_id",user.id)
+        .eq("type","earning")
+        .order("created_at",{ascending:false});
       if(txError) throw txError;
       const rows=tx||[];
       setTotalUsd(rows.reduce((a,r)=>a+Number(r.amount_usd||0),0));
       setTotalKsh(rows.reduce((a,r)=>a+Number(r.amount_ksh||0),0));
-      const start=new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate()-((start.getDay()+6)%7));
-      const week=rows.filter(r=>new Date(r.created_at)>=start);
+      const startOfWeek=new Date(); startOfWeek.setHours(0,0,0,0); startOfWeek.setDate(startOfWeek.getDate()-((startOfWeek.getDay()+6)%7));
+      const week=rows.filter(r=>new Date(r.created_at)>=startOfWeek);
       setWeekUsd(week.reduce((a,r)=>a+Number(r.amount_usd||0),0));
       setWeekKsh(week.reduce((a,r)=>a+Number(r.amount_ksh||0),0));
-      const {count:approvedCount,error:approvedError}=await supabase.from("task_submissions").select("id",{count:"exact",head:true}).eq("worker_id",user.id).eq("status","approved");
-      if(approvedError) throw approvedError;
-      setApproved(Number(approvedCount||0));
-      const {data:pendingRows,error:pendingError}=await supabase.from("task_submissions").select("id,reward_usd,reward_ksh,title,created_at,status,tasks(title)").eq("worker_id",user.id).eq("status","pending").order("created_at",{ascending:false});
-      if(pendingError) throw pendingError;
-      setPendingUsd((pendingRows||[]).reduce((a,r)=>a+Number(r.reward_usd||0),0));
-      setPendingKsh((pendingRows||[]).reduce((a,r)=>a+Number(r.reward_ksh||0),0));
+
+      const {data:subs,error:subsError}=await supabase
+        .from("task_submissions")
+        .select("id,reward_usd,reward_ksh,created_at,status,task_id,tasks(title)")
+        .eq("worker_id",user.id)
+        .order("created_at",{ascending:false});
+      if(subsError) throw subsError;
+      const submissions=subs||[];
+      setApproved(submissions.filter(r=>r.status==="approved").length);
+      const pending=submissions.filter(r=>r.status==="pending");
+      setPendingUsd(pending.reduce((a,r)=>a+Number(r.reward_usd||0),0));
+      setPendingKsh(pending.reduce((a,r)=>a+Number(r.reward_ksh||0),0));
       setRecent(rows.slice(0,10));
     }catch(e){ setError(e instanceof Error?e.message:"Unable to load earnings."); }
     setLoading(false);

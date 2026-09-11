@@ -13,6 +13,7 @@ export default function Profile(){
   const [saving,setSaving]=useState(false);
   const [message,setMessage]=useState("");
   const [error,setError]=useState("");
+  const [editing,setEditing]=useState(true);
 
   useEffect(()=>{ loadProfile(); },[]);
 
@@ -29,6 +30,7 @@ export default function Profile(){
       setFirstName(parts[0]||"");
       setLastName(parts.slice(1).join(" "));
       setPhone(profile?.phone||"");
+      setEditing(false);
     }catch(e){setError(e instanceof Error?e.message:"Unable to load your profile.");}
     setLoading(false);
   }
@@ -51,9 +53,10 @@ export default function Profile(){
         if(emailError) throw emailError;
       }
       setMessage("Profile saved successfully.");
+      setEditing(false);
     }catch(e){setError(e instanceof Error?e.message:"Unable to save your profile.");}
     setSaving(false);
   }
 
-  return <div className="shell"><aside className="sidebar"><div className="brand">Skill<span>Space</span></div><nav className="nav"><Link href="/">🏠 <span>Dashboard</span></Link><Link href="/tasks">📋 <span>Find Tasks</span></Link><Link href="/earnings">💰 <span>Earnings</span></Link><Link href="/wallet">👛 <span>Wallet</span></Link><Link href="/support">💬 <span>Support</span></Link></nav></aside><main className="main"><header className="topbar"><div className="crumb">My Profile</div><div className="avatar">SS</div></header><div className="content"><div className="card page-card"><div className="eyebrow">Account</div><h1 style={{fontSize:30,margin:"7px 0 18px"}}>My Profile</h1>{loading?<p style={{color:"#91a3bd"}}>Loading your profile…</p>:<><div className="form-grid"><div className="field"><label>First name</label><input value={firstName} onChange={e=>setFirstName(e.target.value)} placeholder="Your first name"/></div><div className="field"><label>Last name</label><input value={lastName} onChange={e=>setLastName(e.target.value)} placeholder="Your last name"/></div><div className="field full"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Your email address"/></div><div className="field full"><label>WhatsApp / phone</label><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Your WhatsApp / phone number"/></div></div>{error&&<div className="notice" style={{marginTop:16,color:"#ff8797"}}>{error}</div>}{message&&<div className="notice" style={{marginTop:16,color:"#62e39e"}}>{message}</div>}<button className="btn" style={{marginTop:18}} onClick={saveProfile} disabled={saving}>{saving?"Saving…":"Save profile"}</button></>}</div></div></main></div>
+  return <div className="shell"><aside className="sidebar"><div className="brand">Skill<span>Space</span></div><nav className="nav"><Link href="/">🏠 <span>Dashboard</span></Link><Link href="/tasks">📋 <span>Find Tasks</span></Link><Link href="/earnings">💰 <span>Earnings</span></Link><Link href="/wallet">👛 <span>Wallet</span></Link><Link href="/support">💬 <span>Support</span></Link></nav></aside><main className="main"><header className="topbar"><div className="crumb">My Profile</div><div className="avatar">SS</div></header><div className="content"><div className="card page-card"><div className="eyebrow">Account</div><h1 style={{fontSize:30,margin:"7px 0 18px"}}>My Profile</h1>{loading?<p style={{color:"#91a3bd"}}>Loading your profile…</p>:<>{!editing ? <><div className="notice" style={{marginBottom:16,color:"#62e39e"}}>{message || "Your profile details are saved."}</div><div className="form-grid"><div className="field"><label>First name</label><div className="input-like">{firstName || "Not set"}</div></div><div className="field"><label>Last name</label><div className="input-like">{lastName || "Not set"}</div></div><div className="field full"><label>Email</label><div className="input-like">{email || "Not set"}</div></div><div className="field full"><label>WhatsApp / phone</label><div className="input-like">{phone || "Not set"}</div></div></div><button className="btn secondary" style={{marginTop:18}} onClick={()=>setEditing(true)}>Edit profile</button></> : <><div className="form-grid"><div className="field"><label>First name</label><input value={firstName} onChange={e=>setFirstName(e.target.value)} placeholder="Your first name"/></div><div className="field"><label>Last name</label><input value={lastName} onChange={e=>setLastName(e.target.value)} placeholder="Your last name"/></div><div className="field full"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Your email address"/></div><div className="field full"><label>WhatsApp / phone</label><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Your WhatsApp / phone number"/></div></div>{error&&<div className="notice" style={{marginTop:16,color:"#ff8797"}}>{error}</div>}{message&&<div className="notice" style={{marginTop:16,color:"#62e39e"}}>{message}</div>}<button className="btn" style={{marginTop:18}} onClick={saveProfile} disabled={saving}>{saving?"Saving…":"Save profile"}</button></>}</>}</div></div></main></div>
 }

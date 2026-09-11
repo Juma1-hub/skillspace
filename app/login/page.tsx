@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 
@@ -11,6 +11,10 @@ export default function Login(){
   const [password,setPassword]=useState("");
   const [loading,setLoading]=useState(false);
   const [message,setMessage]=useState("");
+
+  useEffect(()=>{
+    supabase.auth.getUser().then(({data})=>{ if(data.user) router.replace("/"); });
+  },[router]);
 
   async function submit(e:FormEvent){
     e.preventDefault(); setLoading(true); setMessage("");
