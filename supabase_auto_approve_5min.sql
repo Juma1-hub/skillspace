@@ -66,22 +66,29 @@ security definer
 set search_path = public
 as $$
 declare
-  used_count integer;
+  submitted_count integer;
   unlocked boolean;
 begin
-  select coalesce(free_tasks_used,0), coalesce(access_unlocked,false)
-    into used_count, unlocked
+  -- Count actual submissions instead of trusting the profile counter.
+  -- This prevents stale profile data from making a new worker lose the 5 free tasks.
+  select count(*)::integer
+    into submitted_count
+  from public.task_submissions
+  where worker_id = new.worker_id;
+
+  select coalesce(access_unlocked,false)
+    into unlocked
   from public.profiles
   where id = new.worker_id
   for update;
 
-  if not unlocked and used_count >= 5 then
+  if not unlocked and submitted_count >= 5 then
     raise exception 'Your 5 free tasks are complete. Please unlock more tasks to continue.';
   end if;
 
   if not unlocked then
     update public.profiles
-    set free_tasks_used = least(5, used_count + 1)
+    set free_tasks_used = least(5, submitted_count + 1)
     where id = new.worker_id;
   end if;
 
@@ -96,13 +103,14 @@ for each row execute function public.reserve_free_task_slot();
 
 -- Bring existing worker records in line with already-submitted tasks.
 update public.profiles p
-set free_tasks_used = least(5, x.submitted_count)
+set free_tasks_used = least(5, coalesce(x.submitted_count, 0))
 from (
-  select worker_id, count(*)::integer as submitted_count
-  from public.task_submissions
-  group by worker_id
+  select p2.id, count(ts.id)::integer as submitted_count
+  from public.profiles p2
+  left join public.task_submissions ts on ts.worker_id = p2.id
+  group by p2.id
 ) x
-where p.id = x.worker_id
+where p.id = x.id
   and coalesce(p.access_unlocked,false) = false;
 
 -- Replace an existing job with the same name if this script is run again.

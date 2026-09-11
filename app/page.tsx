@@ -36,13 +36,16 @@ export default function Home() {
           .eq("worker_id", user.id),
         supabase
           .from("profiles")
-          .select("free_tasks_used,access_unlocked")
+          .select("access_unlocked")
           .eq("id", user.id)
           .single(),
       ]);
 
-      setSubmittedCount(count || 0);
-      setFreeTasksUsed(Number(profile?.free_tasks_used || 0));
+      const submitted = Number(count || 0);
+      setSubmittedCount(submitted);
+      // The submission table is the source of truth. A stale profile value
+      // must never make a brand-new worker appear to have used all 5 free tasks.
+      setFreeTasksUsed(Math.min(5, submitted));
       setAccessUnlocked(Boolean(profile?.access_unlocked));
       setLoadingStats(false);
     }
