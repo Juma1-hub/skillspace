@@ -26,14 +26,18 @@ export default function Home() {
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadWorkerStats() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        setLoggedIn(false);
-        setLoadingStats(false);
+        if (!cancelled) {
+          setLoggedIn(false);
+          setLoadingStats(false);
+        }
         return;
       }
-      setLoggedIn(true);
+      if (!cancelled) setLoggedIn(true);
 
       const [{ count }, { data: profile }] = await Promise.all([
         supabase
@@ -48,6 +52,7 @@ export default function Home() {
       ]);
 
       const submitted = Number(count || 0);
+      if (cancelled) return;
       setSubmittedCount(submitted);
       // The submission table is the source of truth. A stale profile value
       // must never make a brand-new worker appear to have used all 5 free tasks.
@@ -57,7 +62,17 @@ export default function Home() {
       setBalanceKsh(Number(profile?.available_balance_ksh || 0));
       setLoadingStats(false);
     }
+
     loadWorkerStats();
+
+    // Keep the dashboard in sync with Supabase after automatic task approval.
+    // This also updates the balance without requiring the worker to refresh the page.
+    const interval = window.setInterval(loadWorkerStats, 15000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }, []);
 
   const freeTasksLeft = accessUnlocked ? 0 : Math.max(0, 5 - freeTasksUsed);
