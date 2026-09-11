@@ -20,6 +20,8 @@ export default function Home() {
   const [freeTasksUsed, setFreeTasksUsed] = useState(0);
   const [accessUnlocked, setAccessUnlocked] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [balanceUsd, setBalanceUsd] = useState(0);
+  const [balanceKsh, setBalanceKsh] = useState(0);
 
   useEffect(() => {
     async function loadWorkerStats() {
@@ -36,7 +38,7 @@ export default function Home() {
           .eq("worker_id", user.id),
         supabase
           .from("profiles")
-          .select("access_unlocked")
+          .select("access_unlocked, available_balance_usd, available_balance_ksh")
           .eq("id", user.id)
           .single(),
       ]);
@@ -47,6 +49,8 @@ export default function Home() {
       // must never make a brand-new worker appear to have used all 5 free tasks.
       setFreeTasksUsed(Math.min(5, submitted));
       setAccessUnlocked(Boolean(profile?.access_unlocked));
+      setBalanceUsd(Number(profile?.available_balance_usd || 0));
+      setBalanceKsh(Number(profile?.available_balance_ksh || 0));
       setLoadingStats(false);
     }
     loadWorkerStats();
@@ -77,7 +81,7 @@ export default function Home() {
       <div className="content">
         <section className="hero"><div><div className="eyebrow">Work · Learn · Earn</div><h1>Welcome to SkillSpace</h1><p>Complete simple tasks, build experience and earn from your skills.</p></div><Link className="btn" href="/tasks">Find a task →</Link></section>
         <div className="grid4">
-          <div className="card"><div className="metric-label">Available balance</div><div className="metric">USD 0</div><div style={{fontSize:13,color:"#91a3bd",marginTop:2}}>KSh 0</div><div className="trend">Ready to grow</div></div>
+          <div className="card"><div className="metric-label">Available balance</div><div className="metric">{loadingStats ? "…" : `USD ${balanceUsd.toFixed(2).replace(/\.00$/, "")}`}</div><div style={{fontSize:13,color:"#91a3bd",marginTop:2}}>{loadingStats ? "" : `KSh ${balanceKsh.toLocaleString()}`}</div><div className="trend">Ready to grow</div></div>
           <div className="card"><div className="metric-label">Tasks completed</div><div className="metric">{loadingStats ? "…" : submittedCount}</div><div className="trend">{submittedCount > 0 ? "Submitted for review" : "Start your first task"}</div></div>
           <div className="card"><div className="metric-label">Free tasks left</div><div className="metric">{loadingStats ? "…" : freeTasksLeft}</div><div className="trend">New worker benefit</div></div>
           <div className="card"><div className="metric-label">Access status</div><div className="metric">{accessUnlocked ? "Unlocked" : freeTasksLeft > 0 ? "Free" : "Payment required"}</div><div className="trend">{accessUnlocked ? "Full task access" : freeTasksLeft > 0 ? `${freeTasksLeft} free tasks available` : "USD 2 / KSh 260 to continue"}</div></div>
