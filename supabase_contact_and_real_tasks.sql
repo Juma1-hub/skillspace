@@ -80,3 +80,19 @@ for update
 to authenticated
 using (public.is_admin())
 with check (public.is_admin());
+
+-- Worker self-service permissions used by the Profile and Wallet pages.
+drop policy if exists "Workers can update own profile" on public.profiles;
+create policy "Workers can update own profile"
+on public.profiles
+for update
+to authenticated
+using (id = auth.uid())
+with check (id = auth.uid());
+
+drop policy if exists "Workers can create own withdrawal requests" on public.withdrawal_requests;
+create policy "Workers can create own withdrawal requests"
+on public.withdrawal_requests
+for insert
+to authenticated
+with check (worker_id = auth.uid());
