@@ -46,9 +46,9 @@ export default function Home() {
           .eq("worker_id", user.id),
         supabase
           .from("profiles")
-          .select("access_unlocked, available_balance_usd, available_balance_ksh")
+          .select("available_balance_usd, available_balance_ksh")
           .eq("id", user.id)
-          .single(),
+          .maybeSingle(),
       ]);
 
       const submitted = Number(count || 0);
@@ -57,9 +57,15 @@ export default function Home() {
       // The submission table is the source of truth. A stale profile value
       // must never make a brand-new worker appear to have used all 5 free tasks.
       setFreeTasksUsed(Math.min(5, submitted));
-      setAccessUnlocked(Boolean(profile?.access_unlocked));
       setBalanceUsd(Number(profile?.available_balance_usd || 0));
       setBalanceKsh(Number(profile?.available_balance_ksh || 0));
+
+      const { data: accessProfile } = await supabase
+        .from("profiles")
+        .select("access_unlocked")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!cancelled) setAccessUnlocked(Boolean(accessProfile?.access_unlocked));
       setLoadingStats(false);
     }
 
