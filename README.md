@@ -25,3 +25,8 @@ Never put a Supabase service-role or secret key in this project, GitHub, or Verc
 ## Admin task management
 
 Administrators can open `/admin/tasks` to edit task titles, descriptions, instructions, rewards, categories, and active/inactive status. Worker-facing task content comes from Supabase.
+
+
+## Automatic task approval
+
+Worker submissions are created with `pending` status. A Supabase pg_cron job checks every minute and automatically approves submissions that are at least 5 minutes old. When approved, the worker balance and free-task count are updated and an earning transaction is recorded. Run `supabase_auto_approve_5min.sql` once in the Supabase SQL Editor.

@@ -70,7 +70,7 @@ export default function TaskDetails() {
 
     if (submitError) setError(submitError.message);
     else {
-      setMessage("Your task has been submitted for review.");
+      setMessage("Your task has been submitted successfully. It will be approved automatically after 5 minutes.");
       setSubmission("");
     }
     setSubmitting(false);
