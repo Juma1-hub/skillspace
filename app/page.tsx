@@ -1,125 +1,303 @@
-"use client";
+ "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import SupportContact from "../components/SupportContact";
 import SupportEmail from "../components/SupportEmail";
-import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
-const dashboardCategories = [
-  ["📝", "Writing", "10 available tasks"],
-  ["🔎", "Research", "10 available tasks"],
-  ["📊", "Data Entry", "10 available tasks"],
-  ["🤖", "AI & Data", "10 available tasks"],
-  ["🎨", "Design", "10 available tasks"],
-  ["📣", "Social Media", "10 available tasks"],
-  ["🎙️", "Transcription", "10 available tasks"],
+const categories = [
+  ["📝", "Article Writing"],
+  ["🔎", "Research"],
+  ["📊", "Data Entry"],
+  ["🤖", "AI & Data"],
+  ["🎨", "Design"],
+  ["📣", "Social Media"],
+  ["🎙️", "Transcription"],
 ];
 
 export default function Home() {
+  const router = useRouter();
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [displayName, setDisplayName] = useState("Worker");
+  const [initials, setInitials] = useState("W");
   const [submittedCount, setSubmittedCount] = useState(0);
   const [freeTasksUsed, setFreeTasksUsed] = useState(0);
   const [accessUnlocked, setAccessUnlocked] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
   const [balanceUsd, setBalanceUsd] = useState(0);
-  const [balanceKsh, setBalanceKsh] = useState(0);
-  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
+    let mounted = true;
 
-    async function loadWorkerStats() {
-      const { data: { user } } = await supabase.auth.getUser();
+    const loadDashboard = async () => {
+      setLoadingStats(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
-        if (!cancelled) {
-          setLoggedIn(false);
-          setLoadingStats(false);
-        }
+        router.replace("/login");
         return;
       }
-      if (!cancelled) setLoggedIn(true);
 
-      const [{ count }, { data: profile }] = await Promise.all([
-        supabase
-          .from("task_submissions")
-          .select("id", { count: "exact", head: true })
-          .eq("worker_id", user.id),
-        supabase
-          .from("profiles")
-          .select("available_balance_usd, available_balance_ksh")
-          .eq("id", user.id)
-          .maybeSingle(),
-      ]);
+      const metadata = user.user_metadata || {};
+      const name =
+        metadata.full_name ||
+        metadata.name ||
+        [metadata.first_name, metadata.last_name].filter(Boolean).join(" ") ||
+        user.email?.split("@")[0] ||
+        "Worker";
 
-      const submitted = Number(count || 0);
-      if (cancelled) return;
-      setSubmittedCount(submitted);
-      // The submission table is the source of truth. A stale profile value
-      // must never make a brand-new worker appear to have used all 5 free tasks.
-      setFreeTasksUsed(Math.min(5, submitted));
-      setBalanceUsd(Number(profile?.available_balance_usd || 0));
-      setBalanceKsh(Number(profile?.available_balance_ksh || 0));
+      const nameParts = String(name).trim().split(/\s+/).filter(Boolean);
+      const userInitials =
+        nameParts.length >= 2
+          ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
+          : String(nameParts[0]?.[0] || "W");
 
-      const { data: accessProfile } = await supabase
+      if (!mounted) return;
+
+      setDisplayName(String(name));
+      setInitials(userInitials.toUpperCase());
+
+      const { count: submissionCount } = await supabase
+        .from("task_submissions")
+        .select("*", { count: "exact", head: true })
+        .eq("worker_id", user.id);
+
+      const { data: profile } = await supabase
         .from("profiles")
-        .select("access_unlocked")
+        .select("*")
         .eq("id", user.id)
         .maybeSingle();
-      if (!cancelled) setAccessUnlocked(Boolean(accessProfile?.access_unlocked));
-      setLoadingStats(false);
-    }
 
-    loadWorkerStats();
+      const { data: transactions } = await supabase
+        .from("wallet_transactions")
+        .select("amount, type")
+        .eq("user_id", user.id);
 
-    // Keep the dashboard in sync with Supabase after automatic task approval.
-    // This also updates the balance without requiring the worker to refresh the page.
-    const interval = window.setInterval(loadWorkerStats, 15000);
+      let calculatedBalance = 0;
+
+      for (const transaction of transactions || []) {
+        const amount = Number(transaction.amount || 0);
+        const type = String(transaction.type || "").toLowerCase();
+
+        if (
+          type.includes("withdraw") ||
+          type.includes("debit") ||
+          type.includes("fee")
+        ) {
+          calculatedBalance -= amount;
+        } else {
+          calculatedBalance += amount;
+        }
+      }
+
+      const profileBalance = Number(
+        profile?.balance_usd ?? profile?.balance ?? NaN
+      );
+
+      if (Number.isFinite(profileBalance)) {
+        calculatedBalance = profileBalance;
+      }
+
+      const used = Math.min(Number(submissionCount || 0), 5);
+
+      if (mounted) {
+        setSubmittedCount(Number(submissionCount || 0));
+        setFreeTasksUsed(used);
+        setBalanceUsd(Math.max(0, calculatedBalance));
+        setAccessUnlocked(Boolean(profile?.access_unlocked));
+        setLoadingStats(false);
+      }
+    };
+
+    loadDashboard();
+
+    const interval = window.setInterval(loadDashboard, 15000);
 
     return () => {
-      cancelled = true;
+      mounted = false;
       window.clearInterval(interval);
     };
-  }, []);
+  }, [router]);
 
-  const freeTasksLeft = accessUnlocked ? 0 : Math.max(0, 5 - freeTasksUsed);
+  const balanceKes = balanceUsd * 130;
+  const freeTasksLeft = Math.max(0, 5 - freeTasksUsed);
 
-  return <div className="shell">
-    <aside className="sidebar">
-      <div className="brand">Skill<span>Space</span></div>
-      <div className="nav-title">Workspace</div>
-      <nav className="nav">
-        <Link className="active" href="/">🏠 <span>Dashboard</span></Link>
-        <Link href="/tasks">📋 <span>Find Tasks</span></Link>
-        <Link href="/earnings">💰 <span>Earnings</span></Link>
-        <Link href="/wallet">👛 <span>Wallet</span></Link>
-        <Link href="/support">💬 <span>Support</span></Link>
-      </nav>
-      <div className="nav-title">Account</div>
-      <nav className="nav">
-        <Link href="/profile">👤 <span>My Profile</span></Link>
-        {loggedIn ? <button className="nav-link-button" onClick={async()=>{await supabase.auth.signOut();window.location.href="/login";}}>🚪 <span>Log out</span></button> : <Link href="/login">🚪 <span>Log in</span></Link>}
-      </nav>
-      <div className="sidebar-bottom"><SupportContact /></div>
-    </aside>
-    <main className="main">
-      <header className="topbar"><div className="crumb">Worker Dashboard</div><div className="user"><span style={{fontSize:12,color:"#91a3bd"}}>Welcome back</span><div className="avatar">SS</div></div></header>
-      <div className="content">
-        <section className="hero"><div><div className="eyebrow">Work · Learn · Earn</div><h1>Welcome to SkillSpace</h1><p>Complete simple tasks, build experience and earn from your skills.</p></div><Link className="btn" href="/tasks">Find a task →</Link></section>
-        <div className="grid4">
-          <div className="card"><div className="metric-label">Available balance</div><div className="metric">{loadingStats ? "…" : `USD ${balanceUsd.toFixed(2).replace(/\.00$/, "")}`}</div><div style={{fontSize:13,color:"#91a3bd",marginTop:2}}>{loadingStats ? "" : `KSh ${balanceKsh.toLocaleString()}`}</div><div className="trend">Ready to grow</div></div>
-          <div className="card"><div className="metric-label">Tasks completed</div><div className="metric">{loadingStats ? "…" : submittedCount}</div><div className="trend">{submittedCount > 0 ? "Submitted for review" : "Start your first task"}</div></div>
-          <div className="card"><div className="metric-label">Free tasks left</div><div className="metric">{loadingStats ? "…" : freeTasksLeft}</div><div className="trend">New worker benefit</div></div>
-          <div className="card"><div className="metric-label">Access status</div><div className="metric">{accessUnlocked ? "Unlocked" : freeTasksLeft > 0 ? "Free" : "Payment required"}</div><div className="trend">{accessUnlocked ? "Full task access" : freeTasksLeft > 0 ? `${freeTasksLeft} free tasks available` : "USD 2 / KSh 260 to continue"}</div></div>
+  const closeMenu = () => setMenuOpen(false);
+
+  return (
+    <div className="shell">
+      {menuOpen && (
+        <button
+          className="menu-overlay"
+          aria-label="Close menu"
+          onClick={closeMenu}
+        />
+      )}
+
+      <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
+        <div className="sidebar-head">
+          <Link href="/" className="brand" onClick={closeMenu}>
+            Skill<span>Space</span>
+          </Link>
+
+          <button
+            className="menu-close"
+            aria-label="Close menu"
+            onClick={closeMenu}
+          >
+            ×
+          </button>
         </div>
-        <div className="section two">
-          <div className="card"><div className="section-head"><h2>Browse task categories</h2><Link href="/tasks">View all</Link></div><div className="task-list">{dashboardCategories.map((c,i)=><div className="task" key={i}><div className="task-main"><div className="task-icon">{c[0]}</div><div><h3>{c[1]}</h3><p>{c[2]} · Beginner friendly</p></div></div><Link className="btn" href={`/tasks?category=${encodeURIComponent(c[1])}`}>View</Link></div>)}</div></div>
-          <div className="card"><div className="section-head"><h2>Your free tasks</h2></div><p style={{fontSize:12,color:"#91a3bd"}}>Complete 5 free tasks before the platform access fee applies.</p><div className="progress"><span style={{width:`${Math.min(100, (freeTasksUsed / 5) * 100)}%`}}/></div><div className="info-row"><span>Completed</span><strong>{freeTasksUsed} / 5</strong></div><div className="info-row"><span>After free tasks</span><strong>USD 2 / KSh 260</strong></div><div style={{marginTop:18}}>{freeTasksLeft > 0 || accessUnlocked ? <Link className="btn secondary" href="/tasks">Start earning</Link> : <Link className="btn" href="/payment">Unlock more tasks</Link>}</div></div>
+
+        <nav className="nav">
+          <Link href="/" className="nav-link active" onClick={closeMenu}>
+            <span>🏠</span> Dashboard
+          </Link>
+          <Link href="/tasks" className="nav-link" onClick={closeMenu}>
+            <span>📋</span> Find Tasks
+          </Link>
+          <Link href="/earnings" className="nav-link" onClick={closeMenu}>
+            <span>💰</span> Earnings
+          </Link>
+          <Link href="/wallet" className="nav-link" onClick={closeMenu}>
+            <span>👛</span> Wallet
+          </Link>
+          <Link href="/support" className="nav-link" onClick={closeMenu}>
+            <span>💬</span> Support
+          </Link>
+          <Link href="/profile" className="nav-link" onClick={closeMenu}>
+            <span>👤</span> My Profile
+          </Link>
+          <Link href="/profile" className="nav-link" onClick={closeMenu}>
+            <span>⚙️</span> Settings
+          </Link>
+        </nav>
+
+        <button
+          className="nav-link logout-button"
+          onClick={async () => {
+            await supabase.auth.signOut();
+            router.replace("/login");
+          }}
+        >
+          <span>🚪</span> Log out
+        </button>
+      </aside>
+
+      <main className="main">
+        <header className="topbar">
+          <div className="topbar-left">
+            <Link className="top-brand" href="/">
+              Skill<span>Space</span>
+            </Link>
+
+            <button
+              className="menu-button"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              Menu
+            </button>
+
+            <div className="crumb">Worker Dashboard</div>
+          </div>
+
+          <div className="user">
+            <div className="welcome">
+              Welcome back, <strong>{displayName}</strong>
+            </div>
+            <div className="avatar">{initials}</div>
+          </div>
+        </header>
+
+        <div className="content">
+          <section className="hero">
+            <div>
+              <span className="eyebrow">SKILLSPACE WORKSPACE</span>
+              <h1>Find work. Build skills. Earn.</h1>
+              <p>
+                Choose tasks that match your skills and complete them at your
+                own pace.
+              </p>
+            </div>
+
+            <Link href="/tasks" className="primary-button">
+              Find a task →
+            </Link>
+          </section>
+
+          <div className="grid4">
+            <div className="card stat-card">
+              <span className="stat-label">Available balance</span>
+              <strong>
+                {loadingStats ? "Loading..." : `${balanceUsd.toFixed(2)} USD`}
+              </strong>
+              <small>{balanceKes.toLocaleString()} KSh</small>
+            </div>
+
+            <div className="card stat-card">
+              <span className="stat-label">Tasks completed</span>
+              <strong>{loadingStats ? "—" : submittedCount}</strong>
+              <small>Completed submissions</small>
+            </div>
+
+            <div className="card stat-card">
+              <span className="stat-label">Free tasks left</span>
+              <strong>{loadingStats ? "—" : freeTasksLeft}</strong>
+              <small>Before platform access</small>
+            </div>
+
+            <div className="card stat-card">
+              <span className="stat-label">Access status</span>
+              <strong>{accessUnlocked ? "Active" : "Free access"}</strong>
+              <small>{accessUnlocked ? "Keep working" : "Free tasks available"}</small>
+            </div>
+          </div>
+
+          <section className="section">
+            <div className="section-head">
+              <div>
+                <h2>Task categories</h2>
+                <p className="section-subtitle">
+                  Choose a category and find work that matches your skills.
+                </p>
+              </div>
+              <Link href="/tasks">Browse all</Link>
+            </div>
+
+            <div className="cat-grid">
+              {categories.map(([icon, name]) => (
+                <Link
+                  key={name}
+                  href={`/tasks?category=${encodeURIComponent(name)}`}
+                  className="card cat"
+                  onClick={closeMenu}
+                >
+                  <div className="emoji">{icon}</div>
+                  <h3>{name}</h3>
+                  <p>
+                    Beginner-friendly opportunities to build skills and earn.
+                  </p>
+                  <span className="category-view">View tasks →</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          <div className="footer">
+            <span>
+              Need help? <SupportContact /> · <SupportEmail />
+            </span>
+            <span>© SkillSpace</span>
+          </div>
         </div>
-        <div className="section"><div className="section-head"><h2>Task categories</h2><Link href="/tasks">Browse all</Link></div><div className="cat-grid">
-          {dashboardCategories.map((c,i)=><Link href={`/tasks?category=${encodeURIComponent(c[1])}`} className="card cat" key={i}><div className="emoji">{c[0]}</div><h3>{c[1]}</h3><p>Beginner-friendly opportunities to build skills and earn.</p><div className="count">{c[2]}</div></Link>)}
-        </div></div>
-        <div className="footer">© 2026 <b>SkillSpace</b> · Work · Learn · Earn · <SupportEmail /></div>
-      </div>
-    </main>
-  </div>;
+      </main>
+    </div>
+  );
 }
