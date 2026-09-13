@@ -1,4 +1,5 @@
- "use client";
+ ```tsx
+"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -15,6 +16,23 @@ const categories = [
   ["🎨", "Design"],
   ["📣", "Social Media"],
   ["🎙️", "Transcription"],
+];
+
+const menuItems = [
+  ["🏠", "Dashboard", "/"],
+  ["📋", "Tasks", "/tasks"],
+  ["📝", "Article Writing", "/tasks?category=Article%20Writing"],
+  ["🎙️", "Transcription", "/tasks?category=Transcription"],
+  ["📊", "Data Annotation", "/tasks?category=Data%20Annotation"],
+  ["🔎", "Research", "/tasks?category=Research"],
+  ["📣", "Surveys", "/tasks?category=Surveys"],
+  ["💰", "Earnings", "/earnings"],
+  ["👛", "Wallet", "/wallet"],
+  ["💳", "Transactions", "/transactions"],
+  ["💸", "Withdraw", "/withdraw"],
+  ["👤", "Profile", "/profile"],
+  ["⚙️", "Settings", "/profile"],
+  ["💬", "Support", "/support"],
 ];
 
 export default function Home() {
@@ -45,6 +63,7 @@ export default function Home() {
       }
 
       const metadata = user.user_metadata || {};
+
       const name =
         metadata.full_name ||
         metadata.name ||
@@ -52,7 +71,11 @@ export default function Home() {
         user.email?.split("@")[0] ||
         "Worker";
 
-      const nameParts = String(name).trim().split(/\s+/).filter(Boolean);
+      const nameParts = String(name)
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
       const userInitials =
         nameParts.length >= 2
           ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
@@ -130,8 +153,14 @@ export default function Home() {
 
   const closeMenu = () => setMenuOpen(false);
 
+  const logout = async () => {
+    await supabase.auth.signOut();
+    router.replace("/login");
+  };
+
   return (
     <div className="shell">
+      {/* Dark overlay behind the sliding menu */}
       {menuOpen && (
         <button
           className="menu-overlay"
@@ -140,11 +169,10 @@ export default function Home() {
         />
       )}
 
+      {/* Sliding menu */}
       <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         <div className="sidebar-head">
-          <Link href="/" className="brand" onClick={closeMenu}>
-            Skill<span>Space</span>
-          </Link>
+          <div className="sidebar-title">Menu</div>
 
           <button
             className="menu-close"
@@ -155,72 +183,75 @@ export default function Home() {
           </button>
         </div>
 
-        <nav className="nav">
-          <Link href="/" className="nav-link active" onClick={closeMenu}>
-            <span>🏠</span> Dashboard
-          </Link>
-          <Link href="/tasks" className="nav-link" onClick={closeMenu}>
-            <span>📋</span> Find Tasks
-          </Link>
-          <Link href="/earnings" className="nav-link" onClick={closeMenu}>
-            <span>💰</span> Earnings
-          </Link>
-          <Link href="/wallet" className="nav-link" onClick={closeMenu}>
-            <span>👛</span> Wallet
-          </Link>
-          <Link href="/support" className="nav-link" onClick={closeMenu}>
-            <span>💬</span> Support
-          </Link>
-          <Link href="/profile" className="nav-link" onClick={closeMenu}>
-            <span>👤</span> My Profile
-          </Link>
-          <Link href="/profile" className="nav-link" onClick={closeMenu}>
-            <span>⚙️</span> Settings
-          </Link>
+        {/* Balance is now at the very top of the menu */}
+        <div className="menu-balance-card">
+          <span className="menu-balance-label">Available Balance</span>
+
+          <strong className="menu-balance-usd">
+            {loadingStats ? "Loading..." : `${balanceUsd.toFixed(2)} USD`}
+          </strong>
+
+          <span className="menu-balance-kes">
+            {loadingStats
+              ? "—"
+              : `${balanceKes.toLocaleString()} KSh`}
+          </span>
+        </div>
+
+        <nav className="menu-grid">
+          {menuItems.map(([icon, name, href]) => (
+            <Link
+              key={`${name}-${href}`}
+              href={href}
+              className="menu-card"
+              onClick={closeMenu}
+            >
+              <span className="menu-card-icon">{icon}</span>
+              <span className="menu-card-name">{name}</span>
+            </Link>
+          ))}
         </nav>
 
-        <button
-          className="nav-link logout-button"
-          onClick={async () => {
-            await supabase.auth.signOut();
-            router.replace("/login");
-          }}
-        >
-          <span>🚪</span> Log out
+        <button className="menu-logout" onClick={logout}>
+          <span>🚪</span>
+          <span>Log out</span>
         </button>
       </aside>
 
       <main className="main">
+        {/* Header: Menu button comes BEFORE the logo */}
         <header className="topbar">
           <div className="topbar-left">
-            <Link className="top-brand" href="/">
-              Skill<span>Space</span>
-            </Link>
-
             <button
               className="menu-button"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
             >
-              Menu
+              ☰ Menu
             </button>
 
-            <div className="crumb">Worker Dashboard</div>
+            <Link className="top-brand" href="/">
+              Skill<span>Space</span>
+            </Link>
           </div>
 
           <div className="user">
             <div className="welcome">
-              Welcome back, <strong>{displayName}</strong>
+              Welcome, <strong>{displayName}</strong>
             </div>
+
             <div className="avatar">{initials}</div>
           </div>
         </header>
 
         <div className="content">
+          {/* Welcome area */}
           <section className="hero">
             <div>
-              <span className="eyebrow">SKILLSPACE WORKSPACE</span>
+              <span className="eyebrow">SKILLSPACE</span>
+
               <h1>Find work. Build skills. Earn.</h1>
+
               <p>
                 Choose tasks that match your skills and complete them at your
                 own pace.
@@ -228,47 +259,48 @@ export default function Home() {
             </div>
 
             <Link href="/tasks" className="primary-button">
-              Find a task →
+              Find Tasks →
             </Link>
           </section>
 
-          <div className="grid4">
-            <div className="card stat-card">
-              <span className="stat-label">Available balance</span>
-              <strong>
-                {loadingStats ? "Loading..." : `${balanceUsd.toFixed(2)} USD`}
-              </strong>
-              <small>{balanceKes.toLocaleString()} KSh</small>
-            </div>
-
-            <div className="card stat-card">
-              <span className="stat-label">Tasks completed</span>
+          {/* Compact dashboard information */}
+          <section className="quick-stats">
+            <div className="compact-stat stat-one">
+              <span>Tasks completed</span>
               <strong>{loadingStats ? "—" : submittedCount}</strong>
-              <small>Completed submissions</small>
             </div>
 
-            <div className="card stat-card">
-              <span className="stat-label">Free tasks left</span>
+            <div className="compact-stat stat-two">
+              <span>Free tasks left</span>
               <strong>{loadingStats ? "—" : freeTasksLeft}</strong>
-              <small>Before platform access</small>
             </div>
 
-            <div className="card stat-card">
-              <span className="stat-label">Access status</span>
-              <strong>{accessUnlocked ? "Active" : "Free access"}</strong>
-              <small>{accessUnlocked ? "Keep working" : "Free tasks available"}</small>
+            <div className="compact-stat stat-three">
+              <span>Access</span>
+              <strong>
+                {loadingStats
+                  ? "—"
+                  : accessUnlocked
+                    ? "Active"
+                    : "Free"}
+              </strong>
             </div>
-          </div>
+          </section>
 
+          {/* Categories */}
           <section className="section">
             <div className="section-head">
               <div>
-                <h2>Task categories</h2>
+                <h2>Explore tasks</h2>
+
                 <p className="section-subtitle">
-                  Choose a category and find work that matches your skills.
+                  Find opportunities that match your skills.
                 </p>
               </div>
-              <Link href="/tasks">Browse all</Link>
+
+              <Link href="/tasks" className="browse-link">
+                View all →
+              </Link>
             </div>
 
             <div className="cat-grid">
@@ -277,27 +309,49 @@ export default function Home() {
                   key={name}
                   href={`/tasks?category=${encodeURIComponent(name)}`}
                   className="card cat"
-                  onClick={closeMenu}
                 >
                   <div className="emoji">{icon}</div>
+
                   <h3>{name}</h3>
+
                   <p>
-                    Beginner-friendly opportunities to build skills and earn.
+                    Find available opportunities in this category.
                   </p>
-                  <span className="category-view">View tasks →</span>
+
+                  <span className="category-view">
+                    View tasks →
+                  </span>
                 </Link>
               ))}
             </div>
           </section>
 
-          <div className="footer">
-            <span>
-              Need help? <SupportContact /> · <SupportEmail />
-            </span>
+          {/* Clean horizontal help section */}
+          <section className="help-section">
+            <div className="help-text">
+              <h2>Need Help?</h2>
+              <p>Our support team is ready to help.</p>
+            </div>
+
+            <div className="help-actions">
+              <div className="help-action">
+                <span className="help-icon">✉</span>
+                <SupportEmail />
+              </div>
+
+              <div className="help-action">
+                <span className="help-icon">◉</span>
+                <SupportContact />
+              </div>
+            </div>
+          </section>
+
+          <footer className="footer">
             <span>© SkillSpace</span>
-          </div>
+          </footer>
         </div>
       </main>
     </div>
   );
 }
+```
