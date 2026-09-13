@@ -72,15 +72,12 @@ export default function Home() {
         "Worker";
 
       const nameParts = String(name)
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
-
-      const userInitials =
-        nameParts.length >= 2
-          ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
-          : String(nameParts[0]?.[0] || "W");
-
+         const nameParts = displayName.trim().split(/\s+/);
+const userInitials =
+  nameParts.length >= 2
+    ? String(nameParts[0]?.[0] || "") +
+      String(nameParts[nameParts.length - 1]?.[0] || "")
+    : String(nameParts[0]?.[0] || "W");
       if (!mounted) return;
 
       setDisplayName(String(name));
