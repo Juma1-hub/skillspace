@@ -1,5 +1,4 @@
- ```tsx
-"use client";
+ "use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -67,17 +66,21 @@ export default function Home() {
       const name =
         metadata.full_name ||
         metadata.name ||
-        [metadata.first_name, metadata.last_name].filter(Boolean).join(" ") ||
+        [metadata.first_name, metadata.last_name]
+          .filter(Boolean)
+          .join(" ") ||
         user.email?.split("@")[0] ||
         "Worker";
 
-      const nameParts = String(name)
-         const nameParts = displayName.trim().split(/\s+/);
-const userInitials =
-  nameParts.length >= 2
-    ? String(nameParts[0]?.[0] || "") +
-      String(nameParts[nameParts.length - 1]?.[0] || "")
-    : String(nameParts[0]?.[0] || "W");
+      const nameParts = String(name).trim().split(/\s+/);
+
+      const userInitials =
+        nameParts.length >= 2
+          ? `${nameParts[0]?.[0] || ""}${
+              nameParts[nameParts.length - 1]?.[0] || ""
+            }`
+          : nameParts[0]?.[0] || "W";
+
       if (!mounted) return;
 
       setDisplayName(String(name));
@@ -85,7 +88,10 @@ const userInitials =
 
       const { count: submissionCount } = await supabase
         .from("task_submissions")
-        .select("*", { count: "exact", head: true })
+        .select("*", {
+          count: "exact",
+          head: true,
+        })
         .eq("worker_id", user.id);
 
       const { data: profile } = await supabase
@@ -126,13 +132,13 @@ const userInitials =
 
       const used = Math.min(Number(submissionCount || 0), 5);
 
-      if (mounted) {
-        setSubmittedCount(Number(submissionCount || 0));
-        setFreeTasksUsed(used);
-        setBalanceUsd(Math.max(0, calculatedBalance));
-        setAccessUnlocked(Boolean(profile?.access_unlocked));
-        setLoadingStats(false);
-      }
+      if (!mounted) return;
+
+      setSubmittedCount(Number(submissionCount || 0));
+      setFreeTasksUsed(used);
+      setBalanceUsd(Math.max(0, calculatedBalance));
+      setAccessUnlocked(Boolean(profile?.access_unlocked));
+      setLoadingStats(false);
     };
 
     loadDashboard();
@@ -148,7 +154,9 @@ const userInitials =
   const balanceKes = balanceUsd * 130;
   const freeTasksLeft = Math.max(0, 5 - freeTasksUsed);
 
-  const closeMenu = () => setMenuOpen(false);
+  const closeMenu = () => {
+    setMenuOpen(false);
+  };
 
   const logout = async () => {
     await supabase.auth.signOut();
@@ -157,7 +165,6 @@ const userInitials =
 
   return (
     <div className="shell">
-      {/* Dark overlay behind the sliding menu */}
       {menuOpen && (
         <button
           className="menu-overlay"
@@ -166,8 +173,11 @@ const userInitials =
         />
       )}
 
-      {/* Sliding menu */}
-      <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
+      <aside
+        className={`sidebar ${
+          menuOpen ? "sidebar-open" : ""
+        }`}
+      >
         <div className="sidebar-head">
           <div className="sidebar-title">Menu</div>
 
@@ -180,12 +190,15 @@ const userInitials =
           </button>
         </div>
 
-        {/* Balance is now at the very top of the menu */}
         <div className="menu-balance-card">
-          <span className="menu-balance-label">Available Balance</span>
+          <span className="menu-balance-label">
+            Available Balance
+          </span>
 
           <strong className="menu-balance-usd">
-            {loadingStats ? "Loading..." : `${balanceUsd.toFixed(2)} USD`}
+            {loadingStats
+              ? "Loading..."
+              : `${balanceUsd.toFixed(2)} USD`}
           </strong>
 
           <span className="menu-balance-kes">
@@ -209,14 +222,16 @@ const userInitials =
           ))}
         </nav>
 
-        <button className="menu-logout" onClick={logout}>
+        <button
+          className="menu-logout"
+          onClick={logout}
+        >
           <span>🚪</span>
           <span>Log out</span>
         </button>
       </aside>
 
       <main className="main">
-        {/* Header: Menu button comes BEFORE the logo */}
         <header className="topbar">
           <div className="topbar-left">
             <button
@@ -227,7 +242,10 @@ const userInitials =
               ☰ Menu
             </button>
 
-            <Link className="top-brand" href="/">
+            <Link
+              className="top-brand"
+              href="/"
+            >
               Skill<span>Space</span>
             </Link>
           </div>
@@ -237,39 +255,54 @@ const userInitials =
               Welcome, <strong>{displayName}</strong>
             </div>
 
-            <div className="avatar">{initials}</div>
+            <div className="avatar">
+              {initials}
+            </div>
           </div>
         </header>
 
         <div className="content">
-          {/* Welcome area */}
           <section className="hero">
             <div>
-              <span className="eyebrow">SKILLSPACE</span>
+              <span className="eyebrow">
+                SKILLSPACE
+              </span>
 
-              <h1>Find work. Build skills. Earn.</h1>
+              <h1>
+                Find work. Build skills. Earn.
+              </h1>
 
               <p>
-                Choose tasks that match your skills and complete them at your
-                own pace.
+                Choose tasks that match your skills
+                and complete them at your own pace.
               </p>
             </div>
 
-            <Link href="/tasks" className="primary-button">
+            <Link
+              href="/tasks"
+              className="primary-button"
+            >
               Find Tasks →
             </Link>
           </section>
 
-          {/* Compact dashboard information */}
           <section className="quick-stats">
             <div className="compact-stat stat-one">
               <span>Tasks completed</span>
-              <strong>{loadingStats ? "—" : submittedCount}</strong>
+              <strong>
+                {loadingStats
+                  ? "—"
+                  : submittedCount}
+              </strong>
             </div>
 
             <div className="compact-stat stat-two">
               <span>Free tasks left</span>
-              <strong>{loadingStats ? "—" : freeTasksLeft}</strong>
+              <strong>
+                {loadingStats
+                  ? "—"
+                  : freeTasksLeft}
+              </strong>
             </div>
 
             <div className="compact-stat stat-three">
@@ -278,24 +311,27 @@ const userInitials =
                 {loadingStats
                   ? "—"
                   : accessUnlocked
-                    ? "Active"
-                    : "Free"}
+                  ? "Active"
+                  : "Free"}
               </strong>
             </div>
           </section>
 
-          {/* Categories */}
           <section className="section">
             <div className="section-head">
               <div>
                 <h2>Explore tasks</h2>
 
                 <p className="section-subtitle">
-                  Find opportunities that match your skills.
+                  Find opportunities that match
+                  your skills.
                 </p>
               </div>
 
-              <Link href="/tasks" className="browse-link">
+              <Link
+                href="/tasks"
+                className="browse-link"
+              >
                 View all →
               </Link>
             </div>
@@ -304,15 +340,20 @@ const userInitials =
               {categories.map(([icon, name]) => (
                 <Link
                   key={name}
-                  href={`/tasks?category=${encodeURIComponent(name)}`}
+                  href={`/tasks?category=${encodeURIComponent(
+                    name
+                  )}`}
                   className="card cat"
                 >
-                  <div className="emoji">{icon}</div>
+                  <div className="emoji">
+                    {icon}
+                  </div>
 
                   <h3>{name}</h3>
 
                   <p>
-                    Find available opportunities in this category.
+                    Find available opportunities
+                    in this category.
                   </p>
 
                   <span className="category-view">
@@ -323,21 +364,28 @@ const userInitials =
             </div>
           </section>
 
-          {/* Clean horizontal help section */}
           <section className="help-section">
             <div className="help-text">
               <h2>Need Help?</h2>
-              <p>Our support team is ready to help.</p>
+              <p>
+                Our support team is ready to help.
+              </p>
             </div>
 
             <div className="help-actions">
               <div className="help-action">
-                <span className="help-icon">✉</span>
+                <span className="help-icon">
+                  ✉
+                </span>
+
                 <SupportEmail />
               </div>
 
               <div className="help-action">
-                <span className="help-icon">◉</span>
+                <span className="help-icon">
+                  ◉
+                </span>
+
                 <SupportContact />
               </div>
             </div>
@@ -351,4 +399,3 @@ const userInitials =
     </div>
   );
 }
-```
