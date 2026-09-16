@@ -1,0 +1,1 @@
+import {NextResponse} from 'next/server';export async function POST(req:Request){const {phone,amount}=await req.json();if(!phone||!amount)return NextResponse.json({error:'Phone and amount are required'},{status:400});return NextResponse.json({message:'STK Push endpoint ready. Add Daraja credentials and server-side request logic.',phone,amount});}

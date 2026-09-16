@@ -1,0 +1,1 @@
+export default function Page(){return <div className="page"><div className="hero"><h1>Settings</h1><p>This SkillSpace section is connected to the Supabase-backed application structure. Add your Supabase credentials and continue the production integration.</p></div></div>}

@@ -1,0 +1,1 @@
+import {NextResponse} from 'next/server';export async function POST(req:Request){const body=await req.json();console.log('M-Pesa callback',body);return NextResponse.json({ResultCode:0,ResultDesc:'Accepted'});}
