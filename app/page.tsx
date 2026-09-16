@@ -1,2 +1,54 @@
-import Link from 'next/link';import {categories,tasks} from '../lib/data';
-export default function Home(){return <div className="page"><section className="hero"><p className="price">SKILLSPACE</p><h1>Connect with clients. Complete tasks. Earn.</h1><p>Find online work across writing, research, data, AI, design and social media. Your first 5 tasks are free; after each batch of 5, a KSh 260 platform access payment unlocks the next batch.</p><Link className="btn" href="/tasks">Explore Tasks</Link></section><h2>Task Categories</h2><div className="grid">{categories.map(c=><div className="card" key={c}><h3>{c}</h3><p className="muted">10 starter tasks available</p><Link className="more" href={`/tasks?category=${encodeURIComponent(c)}`}>MORE</Link></div>)}</div><h2>Starter Tasks</h2><div className="grid">{tasks.slice(0,6).map(t=><div className="card" key={t.id}><h3>{t.title}</h3><p className="muted">{t.description}</p><p className="price">${t.reward} USD · KSh {t.reward*130}</p><Link className="more" href={`/tasks/${t.id}`}>VIEW TASK</Link></div>)}</div></div>}
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { categories, starterTasks, FREE_TASKS, BATCH_SIZE, money as _money } from '../lib/data';
+import { money } from './components/AppShell';
+
+export default function Dashboard() {
+  const [name, setName] = useState('Worker');
+  const [balance, setBalance] = useState(0);
+  const [completed, setCompleted] = useState(0);
+  const [unlocked, setUnlocked] = useState(FREE_TASKS);
+
+  useEffect(() => {
+    const sync = () => {
+      setName(localStorage.getItem('ss_name') || 'Worker');
+      setBalance(Number(localStorage.getItem('ss_balance') || '0'));
+      setCompleted(Number(localStorage.getItem('ss_completed') || '0'));
+      setUnlocked(Number(localStorage.getItem('ss_unlocked') || String(FREE_TASKS)));
+    };
+    sync();
+    window.addEventListener('ss:update', sync);
+    return () => window.removeEventListener('ss:update', sync);
+  }, []);
+
+  const remaining = Math.max(0, unlocked - completed);
+  const nextAction = remaining === 0 ? '/subscribe' : '/tasks';
+
+  return <div className="page">
+    <section className="hero dashboard-hero">
+      <div><div className="eyebrow">SKILLSPACE WORKER DASHBOARD</div><h1>Welcome back, {name}</h1><p>Find online work, complete tasks and track your earnings in one place.</p></div>
+      <Link className="btn" href={nextAction}>{remaining === 0 ? 'UNLOCK NEXT 5' : 'BROWSE TASKS'}</Link>
+    </section>
+
+    <div className="grid stats-grid">
+      <div className="stat"><span className="muted">Available balance</span><strong>{money(balance)}</strong></div>
+      <div className="stat"><span className="muted">Tasks completed</span><strong>{completed}</strong></div>
+      <div className="stat"><span className="muted">Tasks available to you</span><strong>{remaining}</strong></div>
+    </div>
+
+    <div className="section-head"><div><h2>Task categories</h2><p className="muted">{starterTasks.length} starter/test tasks are available — 10 in each category.</p></div><Link className="ghost" href="/tasks">View all tasks</Link></div>
+    <div className="category-grid">
+      {categories.map((category, i) => <Link className="category-card" href={`/tasks?category=${encodeURIComponent(category)}`} key={category}><span className="category-number">0{i + 1}</span><h3>{category}</h3><p>10 starter tasks</p><span className="more">VIEW TASKS →</span></Link>)}
+    </div>
+
+    <div className="grid quick-grid">
+      <Link className="card action-card" href="/earnings"><h3>Earnings</h3><p className="muted">Track completed task rewards.</p><span className="more">OPEN →</span></Link>
+      <Link className="card action-card" href="/withdraw"><h3>Withdraw</h3><p className="muted">Request a withdrawal from your balance.</p><span className="more">OPEN →</span></Link>
+      <Link className="card action-card" href="/support"><h3>Need help?</h3><p className="muted">Contact SkillSpace support.</p><span className="more">GET SUPPORT →</span></Link>
+    </div>
+
+    {remaining === 0 && <div className="notice warning">You have completed your current batch of {BATCH_SIZE}. Pay the KSh 260 ($2 USD) access fee to unlock the next 5 tasks.</div>}
+  </div>;
+}
