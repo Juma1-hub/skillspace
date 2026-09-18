@@ -1,22 +1,23 @@
 # SkillSpace Frontend
 
-Frontend-first SkillSpace rebuild for GitHub + Vercel.
+A self-contained, GitHub/Vercel-ready SkillSpace frontend foundation.
 
 ## Included
-- Next.js App Router
-- 6 categories with 10 starter/test tasks each (60 total)
-- Working dashboard, menu, task filters, task details and submissions
-- First 5 tasks free; KSh 260 / $2 unlocks the next 5 in frontend test mode
-- Earnings and transaction history
-- Withdrawal request UI with $100 minimum
-- Login and signup demo flows
-- Profile and settings
-- Support page
-- Admin task add/edit/delete and contact-information editing
-- Responsive desktop/mobile UI
-
-## Current stage
-All data is stored in browser localStorage. No Supabase, Daraja credentials or payment secrets are included. Real authentication, database persistence and Safaricom Daraja STK Push will be added after the frontend is approved.
+- Responsive worker dashboard and slide-out menu
+- Login/sign-up gate
+- 6 categories with 10 starter tasks each (60 tasks)
+- View Task -> Submit flow
+- Duplicate-submission prevention
+- First 5 tasks free, then $2 / KSh 260 unlock rule messaging
+- USD/KSh display using 1 USD = KSh 130
+- Earnings and transactions
+- Withdrawal minimum $100 / KSh 13,000
+- Profile, Settings, Support
+- Admin demo area for adding tasks and editing support contacts
+- Browser storage fallback so the frontend is functional before Supabase credentials are connected
 
 ## Vercel
-Vercel should detect this as a standard Next.js project. Use the repository root as the Root Directory and the default `next build` command. Node 24.x is recommended for current Vercel builds.
+Upload the project root to GitHub and import the repository into Vercel. No `.env` values are required for the browser-storage mode.
+
+## Supabase
+The UI is intentionally separated from backend credentials. Supabase auth/database wiring can be connected to the existing SkillSpace tables without changing the page structure.
