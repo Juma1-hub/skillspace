@@ -1,0 +1,4 @@
+"use client";
+import Link from "next/link";
+import {tasks,categories} from "../data";
+export default function TasksClient({category}:{category?:string}){const list=category?tasks.filter(t=>t.category===category):tasks;return <><div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}><Link className={!category?"primary small":"secondary small"} href="/tasks">All</Link>{categories.map(c=><Link key={c} className={category===c?"primary small":"secondary small"} href={"/tasks?category="+encodeURIComponent(c)}>{c}</Link>)}</div><div className="grid">{list.map(t=><div className="card taskCard" key={t.id}><div className="taskTop"><span className="pill">{t.category}</span><span className="price">USD {t.reward.toFixed(2)}</span></div><h3>{t.title}</h3><p>{t.description}</p><Link className="primary more" href={"/tasks/"+t.id}>MORE →</Link></div>)}</div></>}

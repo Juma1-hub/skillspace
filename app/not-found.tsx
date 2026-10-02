@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function NotFound(){return <main className="loginWrap"><div className="auth"><span className="brand">Skill<span>Space</span></span><h1>Page not found</h1><p>The page you requested does not exist.</p><Link className="primary" href="/dashboard">Return to dashboard</Link></div></main>}

@@ -1,36 +1,42 @@
-# SkillSpace — Full Frontend
+# SkillSpace — Full Frontend (Vercel Fixed)
 
-A complete, GitHub/Vercel-ready Next.js frontend for SkillSpace.
+This is the rebuilt SkillSpace frontend, designed for direct upload to the `Juma1-hub/skillspace` GitHub repository and deployment on Vercel.
 
 ## Included
-- SkillSpace branding with a clean Arcade Writers-inspired layout
+- SkillSpace branding with a clean blue/white, Arcade Writers-inspired interface
 - Login and signup
 - Worker dashboard
-- Slide-out navigation menu
+- Slide-out navigation
 - 9 task categories
-- 10 starter tasks per category (90 seeded frontend tasks)
-- Task detail and submission flow
-- Demo earnings and transactions
-- Withdraw page with USD/KSh conversion
+- 10 starter tasks in every category (90 frontend starter tasks)
+- Working task details and submission flow
+- Demo wallet, earnings and transactions
 - Surveys
-- Profile, settings and support
-- Admin area for posting/editing task UI and support information
+- Profile and settings
+- Support page
+- Withdraw page with USD/KSh conversion
+- Admin area with task posting/editing UI and support/contact settings
 - First 5 tasks free, then USD 2 / KSh 260 access fee model displayed
 - Withdrawal minimum USD 100 / KSh 13,000
-- M-PESA Daraja-ready withdrawal/payment UI
+- M-PESA-ready withdrawal UI
 - Responsive mobile layout
+- Production error and 404 pages
 
-## Deploy
-1. Extract this ZIP.
-2. Upload the extracted project files to the root of your GitHub `Juma1-hub/skillspace` repository.
-3. Commit the files.
-4. Import/deploy the repository on Vercel.
-5. No `.env` variables are required for this frontend demo build.
+## Vercel deployment
+Vercel should detect Next.js automatically. Keep the repository root as the project Root Directory and use the default Node.js setting unless your Vercel project explicitly requires another version.
 
-## Demo
-- Any valid email/password can log in.
-- To see Admin Area, log in with an email containing `admin`, for example `admin@skillspace.test`.
-- Task submissions update the demo wallet and transaction list in the browser.
+Build command: `npm run build`
 
-## Backend connection
-The UI is deliberately structured so Supabase authentication/database and M-PESA Daraja STK Push can be connected next without redesigning the frontend. Do not put Daraja secret credentials in client-side code; use server-side API routes/environment variables when integrating payments.
+The project includes the TypeScript compiler and React type packages required by a Next.js TypeScript deployment. This matters because Vercel runs the production build in its own environment and does not rely on packages that happen to exist only on a developer machine.
+
+## Demo login
+Any non-empty valid-looking email and password will log in in frontend demo mode.
+
+To display the Admin Area, use an email containing `admin`, for example:
+`admin@skillspace.test`
+
+## Backend integration
+This package is the frontend layer. Supabase authentication/database and M-PESA Daraja should be connected next. Daraja secrets must be stored server-side as Vercel environment variables and must never be exposed in browser code.
+
+## Important
+The first ZIP had a client `useSearchParams()` implementation in the task page. Next.js documents that statically rendered routes using `useSearchParams()` need a Suspense boundary; the fixed version now uses the page `searchParams` prop instead, avoiding that production-build failure.
