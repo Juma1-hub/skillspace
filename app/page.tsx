@@ -1,1 +1,1 @@
-import App from "../components/App"; export default function Page(){return <App/>}
+import {redirect} from "next/navigation"; export default function Home(){redirect("/login")}

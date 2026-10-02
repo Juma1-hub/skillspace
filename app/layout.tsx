@@ -1,4 +1,11 @@
 import "./globals.css";
-import type { Metadata } from "next";
-export const metadata: Metadata = { title:"SkillSpace", description:"Connect with clients and earn from available online work." };
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body>{children}</body></html>}
+import { AppProvider } from "./providers";
+
+export const metadata = {
+  title: "SkillSpace — Work. Earn. Grow.",
+  description: "A professional online task platform connecting clients with skilled work providers."
+};
+
+export default function RootLayout({children}:{children:React.ReactNode}) {
+  return <html lang="en"><body><AppProvider>{children}</AppProvider></body></html>;
+}
