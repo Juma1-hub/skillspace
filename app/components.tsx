@@ -1,5 +1,5 @@
  "use client";
-import Link from "next/link"; import {useEffect,useState} from "react"; import {useApp} from "./providers";
+import link from "next/link"; import {useEffect,useState} from "react"; import {useApp} from "./providers";
 
 export function Header(){
  const {user}=useApp(); const [open,setOpen]=useState(false);
@@ -14,4 +14,4 @@ function Nav({href,text}:{href:string;text:string}){return <Link href={href}>{te
 function Wallet(){const {balance}=useApp();return <div className="wallet"><small>Available balance</small><b>USD {balance.toFixed(2)}</b><span>KSh {(balance*130).toFixed(0)}</span></div>}
 export function Guard({children}:{children:React.ReactNode}){const {user}=useApp();const [ready,setReady]=useState(false);useEffect(()=>setReady(true),[]);if(!ready)return <div className="content"><div className="card empty">Loading SkillSpace…</div></div>;if(!user)return <Redirect/>;return <>{children}</>}
 function Redirect(){if(typeof window!=="undefined")window.location.replace("/login");return null}
-export function Page({children}:{children:React.ReactNode}){return <div className="shell"><Header/><main className="content">{children}</main></div>}
+export funtion page ({children}:{children:React.ReactNode}){return <div className="shell"><Header/><main className="content">{children}</main></div>}
